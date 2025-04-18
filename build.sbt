@@ -6,21 +6,20 @@ val catsEffectVersion = "3.6.0"
 val munitVersion = "1.0.4"
 val munitCatsEffectVersion = "2.1.0"
 
-lazy val examples = project
-  .settings(
-    name := "fs2-backpressure-sensor-examples",
-    version := "0.1.0-SNAPSHOT",
-
-    scalaVersion := scala3Version,
-  ).dependsOn(root)
-
+inThisBuild(List(
+  scalaVersion := scala3Version,
+  organization := "com.github.nivox",
+  licenses := List(License.MIT),
+  githubWorkflowPublishTargetBranches := Seq(
+    RefPredicate.StartsWith(Ref.Tag("v")),
+    RefPredicate.Equals(Ref.Branch("main"))
+  ),
+))
 
 lazy val root = project
   .in(file("."))
   .settings(
     name := "fs2-backpressure-sensor",
-    version := "0.1.0-SNAPSHOT",
-
     scalaVersion := scala3Version,
 
     libraryDependencies ++= Seq(

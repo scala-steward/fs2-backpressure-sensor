@@ -19,26 +19,29 @@ trait Reporter[F[_]]:
   def reportBackpressuredFor(duration: FiniteDuration): F[Unit]
 
 class AccumulatingReporter[F[_]: Monad](
-    starvationAcc: Ref[F, FiniteDuration],
-    backpressureAcc: Ref[F, FiniteDuration]
+    starvationAcc: Ref[F, Option[FiniteDuration]],
+    backpressureAcc: Ref[F, Option[FiniteDuration]]
 ) extends Reporter[F]:
   def reportStarvedFor(duration: FiniteDuration): F[Unit] =
-    starvationAcc.update(_ + duration)
-  def reportBackpressuredFor(duration: FiniteDuration): F[Unit] =
-    backpressureAcc.update(_ + duration)
+    starvationAcc.update(_.map(_ + duration).orElse(Some(duration)))
 
-  def consume(f: (FiniteDuration, FiniteDuration) => F[Unit]): F[Unit] =
+  def reportBackpressuredFor(duration: FiniteDuration): F[Unit] =
+    backpressureAcc.update(_.map(_ + duration).orElse(Some(duration)))
+
+  def consume(
+      f: (Option[FiniteDuration], Option[FiniteDuration]) => F[Unit]
+  ): F[Unit] =
     for
-      starvation <- starvationAcc.getAndSet(Duration.Zero)
-      backpressure <- backpressureAcc.getAndSet(Duration.Zero)
+      starvation <- starvationAcc.getAndSet(None)
+      backpressure <- backpressureAcc.getAndSet(None)
       _ <- f(starvation, backpressure)
     yield ()
 
 object AccumulatingReporter:
   def apply[F[_]: Monad: Async](): F[AccumulatingReporter[F]] =
     for
-      backpressureAcc <- Ref.of(Duration.Zero)
-      starvationAcc <- Ref.of(Duration.Zero)
+      backpressureAcc <- Ref.of(Option.empty[FiniteDuration])
+      starvationAcc <- Ref.of(Option.empty[FiniteDuration])
     yield new AccumulatingReporter[F](starvationAcc, backpressureAcc)
 
 object Reporter {
@@ -52,7 +55,18 @@ object Reporter {
           f <- Async[F].start(
             Stream
               .awakeEvery(interval)
-              .evalTap(_ => r.consume(reportAction))
+              .mapAccumulate(Duration.Zero)((last, current) =>
+                current -> (current - last)
+              )
+              .map(_._2)
+              .evalTap { elapsed =>
+                r.consume((starvation, backpressure) =>
+                  reportAction(
+                    starvation.getOrElse(elapsed),
+                    backpressure.getOrElse(elapsed)
+                  )
+                )
+              }
               .compile
               .drain
           )
@@ -64,22 +78,18 @@ object Reporter {
 object BackpressureSensor:
   private[BackpressureSensor] class BracketReporter[F[_]: Monad](
       reporter: Reporter[F],
-      upstreamStarvationAcc: Ref[F, FiniteDuration],
       upstreamBackpressureAcc: Ref[F, FiniteDuration]
   ):
     val upstream: Reporter[F] = new Reporter[F]:
       def reportStarvedFor(duration: FiniteDuration): F[Unit] =
-        upstreamStarvationAcc.update(_ + duration)
+        reporter.reportStarvedFor(duration)
       def reportBackpressuredFor(duration: FiniteDuration): F[Unit] =
         upstreamBackpressureAcc.update(_ + duration)
 
     val downstream: Reporter[F] = new Reporter[F]:
       def reportStarvedFor(duration: FiniteDuration): F[Unit] =
-        for
-          upstreamDuration <- upstreamStarvationAcc.getAndSet(Duration.Zero)
-          adjustedDuration = (duration - upstreamDuration).max(Duration.Zero)
-          _ <- reporter.reportStarvedFor(adjustedDuration)
-        yield ()
+        Monad[F].pure(())
+
       def reportBackpressuredFor(duration: FiniteDuration): F[Unit] =
         for
           upstreamDuration <- upstreamBackpressureAcc.getAndSet(Duration.Zero)
@@ -93,11 +103,9 @@ object BackpressureSensor:
     ): F[BracketReporter[F]] =
       for
         upstreamBackpressureAcc <- Ref.of(Duration.Zero)
-        upstreamStarvationAcc <- Ref.of(Duration.Zero)
         br = new BracketReporter[F](
           reporter,
-          upstreamStarvationAcc,
-          upstreamBackpressureAcc,
+          upstreamBackpressureAcc
         )
       yield br
 

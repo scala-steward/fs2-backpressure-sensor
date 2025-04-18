@@ -2,5 +2,6 @@ target/
 project/target/
 .bloop
 .metals
+.bsp
 project/**/metals.sbt
 .direnv
