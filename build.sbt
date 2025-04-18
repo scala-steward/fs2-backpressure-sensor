@@ -10,6 +10,8 @@ inThisBuild(List(
   scalaVersion := scala3Version,
   organization := "com.github.nivox",
   licenses := List(License.MIT),
+  githubOwner := "nivox",
+  githubRepository := "fs2-backpressure-sensor",
   githubWorkflowPublishTargetBranches := Seq(
     RefPredicate.StartsWith(Ref.Tag("v")),
     RefPredicate.Equals(Ref.Branch("main"))
