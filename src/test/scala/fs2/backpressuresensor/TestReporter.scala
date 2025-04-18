@@ -4,6 +4,7 @@ import cats.effect.IO
 import scala.concurrent.duration.FiniteDuration
 import cats.effect.kernel.Ref
 import scala.concurrent.duration.Duration
+import java.time.ZoneOffset
 
 class TestReporter private (
     starvingDurationAcc: Ref[IO, FiniteDuration],
@@ -13,7 +14,7 @@ class TestReporter private (
     starvingDurationAcc.update(_ + duration)
 
   def reportBackpressuredFor(duration: FiniteDuration): IO[Unit] =
-    backpressureDurationAcc.update(_ + duration)
+   backpressureDurationAcc.update(_ + duration)
 
   def getStarvedDuration: IO[FiniteDuration] =
     starvingDurationAcc.get

@@ -106,7 +106,51 @@ class BackpressureSensorSuite extends CatsEffectSuite:
       _ <- r2.getBackpressureDuration.map(_.toMillis).assertEquals(0)
     yield ()
 
-  test("braketed sensors only measure contained pipe starvation and backpressure"):
+  test("bracket sensor correctly measures internal backpressure"):
+    val iterations = 5
+    val program =
+      for
+        r <- TestReporter()
+        _ <- Stream.constant(()).covary[IO] // Fast upstream
+          .take(iterations) // Limit upstream to avoid infinite stream issues
+          .backpressureBracketSensor(r) { s =>
+            s.evalTap(_ => IO.sleep(1.second)) // Slow operation *inside* the bracket
+          }
+          .evalTap(_ => IO.sleep(100.millis)) // Faster operation *outside* the bracket
+          .compile
+          .drain
+      yield r
+
+    for
+      result <- TestControl.executeEmbed(program)
+
+      // Starvation should be minimal/zero as upstream is fast
+      _ <- result.getStarvedDuration.map(_.toMillis).assertEquals(0L)
+
+      // Backpressure is caused by the 1-second sleep *inside* the bracket
+      expectedBackpressure = 1000 * (iterations - 1)
+      _ <- result.getBackpressureDuration.map(_.toMillis).assertEquals(expectedBackpressure.toLong)
+    yield ()
+
+  test("standard sensor reports zero when no delays"):
+    val iterations = 5
+    val program =
+      for
+        r <- TestReporter()
+        _ <- Stream.range(0, iterations).covary[IO]
+          .backpressureSensor(r)
+          .evalTap(_ => IO.unit) // No delay
+          .compile
+          .drain
+      yield r
+
+    for
+      result <- TestControl .executeEmbed(program)
+      _ <- result.getStarvedDuration.map(_.toMillis).assertEquals(0L)
+      _ <- result.getBackpressureDuration.map(_.toMillis).assertEquals(0L)
+    yield ()
+
+  test("bracketed sensors only measure contained pipe starvation and backpressure"):
     val iterations = 10
     val program = 
       for
@@ -116,9 +160,9 @@ class BackpressureSensorSuite extends CatsEffectSuite:
           .evalTap(_ => IO.sleep(1.second))
           .backpressureBracketSensor(r1) { s1 =>
             s1.evalTap(_ => IO.sleep(100.millis))
-              .backpressureBracketSensor(r2) {  s2 =>
-                s2.take(iterations)
-              }
+          }
+          .backpressureBracketSensor(r2) {  s2 =>
+            s2.take(iterations)
           }
           .evalTap(_ => IO.sleep(1.second))
           .compile
@@ -129,11 +173,12 @@ class BackpressureSensorSuite extends CatsEffectSuite:
       result <- TestControl.executeEmbed(program)
       (r1, r2) = result 
 
-      s1Starvation = 100 * iterations
-      s2Starvation = 0
+      s1Starvation = (1000 * iterations) - (100 * iterations)
+      s2Starvation = (1000 * iterations) + (100 * iterations)
       _ <- r1.getStarvedDuration.map(_.toMillis).assertEquals(s1Starvation)
       _ <- r2.getStarvedDuration.map(_.toMillis).assertEquals(s2Starvation)
 
-      _ <- r1.getBackpressureDuration.map(_.toMillis).assertEquals(100 * (iterations -1))
+      // First element does not have backpressure, last element is not reported
+      _ <- r1.getBackpressureDuration.map(_.toMillis).assertEquals(100 * (iterations - 2))
       _ <- r2.getBackpressureDuration.map(_.toMillis).assertEquals(0)
     yield ()
