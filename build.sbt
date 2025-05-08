@@ -10,7 +10,7 @@ val munitCatsEffectVersion = "2.1.0"
 
 inThisBuild(List(
   scalaVersion := scala3Version,
-  organization := "com.github.nivox",
+  organization := "io.github.nivox",
   homepage := Some(url("https://github.com/nivox/fs2-backpressure-sensor")),
   licenses := List(License.MIT),
 ))
