@@ -1,3 +1,5 @@
+import xerial.sbt.Sonatype.sonatypeCentralHost
+
 // Targets Scala3 LTS
 val scala3Version = "3.3.5"
 
@@ -9,14 +11,11 @@ val munitCatsEffectVersion = "2.1.0"
 inThisBuild(List(
   scalaVersion := scala3Version,
   organization := "com.github.nivox",
+  homepage := Some(url("https://github.com/nivox/fs2-backpressure-sensor")),
   licenses := List(License.MIT),
-  githubOwner := "nivox",
-  githubRepository := "fs2-backpressure-sensor",
-  githubWorkflowPublishTargetBranches := Seq(
-    RefPredicate.StartsWith(Ref.Tag("v")),
-    RefPredicate.Equals(Ref.Branch("main"))
-  ),
 ))
+
+ThisBuild / sonatypeCredentialHost := sonatypeCentralHost
 
 lazy val root = project
   .in(file("."))
