@@ -6,19 +6,29 @@ val catsEffectVersion = "3.6.0"
 val munitVersion = "1.0.4"
 val munitCatsEffectVersion = "2.1.0"
 
-inThisBuild(List(
-  scalaVersion := scala3Version,
-  organization := "io.github.nivox",
-  homepage := Some(url("https://github.com/nivox/fs2-backpressure-sensor")),
-  licenses := List(License.MIT),
-))
+inThisBuild(
+  List(
+    scalaVersion := scala3Version,
+    organization := "io.github.nivox",
+    homepage := Some(url("https://github.com/nivox/fs2-backpressure-sensor")),
+    licenses := List(License.MIT),
+    versionScheme := Some("early-semver"),
+    developers := List(
+      Developer(
+        id = "nivox",
+        name = "Andrea Zito",
+        email = "zito.andrea@gmail.com",
+        url = url("https://nivox.github.io")
+      )
+    )
+  )
+)
 
 lazy val root = project
   .in(file("."))
   .settings(
     name := "fs2-backpressure-sensor",
     scalaVersion := scala3Version,
-
     libraryDependencies ++= Seq(
       "co.fs2" %% "fs2-core" % fs2Version,
       "org.scalameta" %% "munit" % munitVersion % Test,
