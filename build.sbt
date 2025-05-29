@@ -1,5 +1,3 @@
-import xerial.sbt.Sonatype.sonatypeCentralHost
-
 // Targets Scala3 LTS
 val scala3Version = "3.3.5"
 
@@ -14,8 +12,6 @@ inThisBuild(List(
   homepage := Some(url("https://github.com/nivox/fs2-backpressure-sensor")),
   licenses := List(License.MIT),
 ))
-
-ThisBuild / sonatypeCredentialHost := sonatypeCentralHost
 
 lazy val root = project
   .in(file("."))
