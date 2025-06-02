@@ -16,9 +16,7 @@ jobs:
           java-version: 8
           cache: sbt
       - uses: sbt/setup-sbt@v1
-      # Workaround for sbt-sonatype issue https://github.com/xerial/sbt-sonatype/issues/518
-      #- run: sbt ci-release
-      - run: sbt -Dsun.net.client.defaultReadTimeout=60000 -v ci-release
+      - run: sbt ci-release
         env:
           PGP_PASSPHRASE: ${{ secrets.PGP_PASSPHRASE }}
           PGP_SECRET: ${{ secrets.PGP_SECRET }}
