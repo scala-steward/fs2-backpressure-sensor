@@ -27,8 +27,8 @@ class BackpressureSensorSuite extends CatsEffectSuite {
 
       _ <- result.getStarvedDuration
         .map(_.toMillis)
-        .assertEquals(1000 * iterations)
-      _ <- result.getBackpressureDuration.map(_.toMillis).assertEquals(0)
+        .assertEquals(1000L * iterations)
+      _ <- result.getBackpressureDuration.map(_.toMillis).assertEquals(0L)
     } yield ()
   }
 
@@ -50,11 +50,11 @@ class BackpressureSensorSuite extends CatsEffectSuite {
     for {
       result <- TestControl.executeEmbed(program)
 
-      _ <- result.getStarvedDuration.map(_.toMillis).assertEquals(0)
+      _ <- result.getStarvedDuration.map(_.toMillis).assertEquals(0L)
 
       // Last element does not generate backpressure as there's no pull after it to
       // trigger the backpressure computation
-      backpressure = 1000 * (iterations - 1)
+      backpressure = 1000L * (iterations - 1)
       _ <- result.getBackpressureDuration
         .map(_.toMillis)
         .assertEquals(backpressure)
@@ -83,13 +83,13 @@ class BackpressureSensorSuite extends CatsEffectSuite {
       result <- TestControl.executeEmbed(program)
       (r1, r2) = result
 
-      _ <- r1.getStarvedDuration.map(_.toMillis).assertEquals(0)
-      _ <- r2.getStarvedDuration.map(_.toMillis).assertEquals(100 * iterations)
+      _ <- r1.getStarvedDuration.map(_.toMillis).assertEquals(0L)
+      _ <- r2.getStarvedDuration.map(_.toMillis).assertEquals(100L * iterations)
 
       // Last element does not generate backpressure as there's no pull after it to
       // trigger the backpressure computation
-      s1Backpressure = 100 * (iterations - 1)
-      s2Backpressure = 1000 * (iterations - 1)
+      s1Backpressure = 100L * (iterations - 1)
+      s2Backpressure = 1000L * (iterations - 1)
       _ <- r1.getBackpressureDuration
         .map(_.toMillis)
         .assertEquals(s1Backpressure + s2Backpressure)
@@ -121,8 +121,8 @@ class BackpressureSensorSuite extends CatsEffectSuite {
       result <- TestControl.executeEmbed(program)
       (r1, r2) = result
 
-      s1Starvation = 1000 * iterations
-      s2Starvation = 100 * iterations
+      s1Starvation = 1000L * iterations
+      s2Starvation = 100L * iterations
       _ <- r1.getStarvedDuration.map(_.toMillis).assertEquals(s1Starvation)
       _ <- r2.getStarvedDuration
         .map(_.toMillis)
@@ -130,11 +130,11 @@ class BackpressureSensorSuite extends CatsEffectSuite {
 
       // Last element does not generate backpressure as there's no pull after it to
       // trigger the backpressure computation
-      s1Backpressure = 100 * (iterations - 1)
+      s1Backpressure = 100L * (iterations - 1)
       _ <- r1.getBackpressureDuration
         .map(_.toMillis)
         .assertEquals(s1Backpressure)
-      _ <- r2.getBackpressureDuration.map(_.toMillis).assertEquals(0)
+      _ <- r2.getBackpressureDuration.map(_.toMillis).assertEquals(0L)
     } yield ()
   }
 
@@ -166,8 +166,8 @@ class BackpressureSensorSuite extends CatsEffectSuite {
       result <- TestControl.executeEmbed(program)
       (r1, r2) = result
 
-      s1Starvation = 1000 * iterations
-      s2Starvation = (1000 * iterations) + (100 * iterations)
+      s1Starvation = 1000L * iterations
+      s2Starvation = (1000L * iterations) + (100L * iterations)
       _ <- r1.getStarvedDuration.map(_.toMillis).assertEquals(s1Starvation)
       _ <- r2.getStarvedDuration.map(_.toMillis).assertEquals(s2Starvation)
 
@@ -179,10 +179,10 @@ class BackpressureSensorSuite extends CatsEffectSuite {
       // trigger the backpressure computation
       _ <- r1.getBackpressureDuration
         .map(_.toMillis)
-        .assertEquals(100 * (iterations - 2))
+        .assertEquals(100L * (iterations - 2))
       _ <- r2.getBackpressureDuration
         .map(_.toMillis)
-        .assertEquals(50 * (iterations - 2))
+        .assertEquals(50L * (iterations - 2))
     } yield ()
   }
 }

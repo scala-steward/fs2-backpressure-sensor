@@ -22,7 +22,7 @@ object syntax {
       stream.through(BackpressureSensor.sensor(reporter))
   }
 
-  private type MonadCancelThrow = [F[_]] =>> MonadCancel[F, Throwable]
+  private type MonadCancelThrow[F[_]] = MonadCancel[F, Throwable]
   implicit class StreamMonadOps[F[_]: MonadCancelThrow: Clock, T](
       stream: Stream[F, T]
   ) {

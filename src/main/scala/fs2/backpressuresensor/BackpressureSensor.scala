@@ -103,7 +103,7 @@ object BackpressureSensor {
     }
   }
 
-  object BracketReporter:
+  object BracketReporter {
     def apply[F[_]: Monad: Async](
         reporter: Reporter[F]
     ): F[BracketReporter[F]] =
@@ -114,6 +114,7 @@ object BackpressureSensor {
           upstreamBackpressureAcc
         )
       } yield br
+  }
 
   def sensor[F[_]: Clock, T](
       reporter: Reporter[F]
