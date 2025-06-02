@@ -1,11 +1,11 @@
 package fs2.backpressuresensor
 
-import munit.CatsEffectSuite
-import cats.effect.testkit.TestControl
 import cats.effect.IO
+import cats.effect.testkit.TestControl
 import fs2.Stream
-
 import fs2.backpressuresensor.syntax._
+import munit.CatsEffectSuite
+
 import scala.concurrent.duration._
 
 class BackpressureSensorSuite extends CatsEffectSuite {

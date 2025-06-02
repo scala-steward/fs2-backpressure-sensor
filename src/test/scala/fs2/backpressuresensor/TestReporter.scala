@@ -1,10 +1,10 @@
 package fs2.backpressuresensor
 
 import cats.effect.IO
-import scala.concurrent.duration.FiniteDuration
 import cats.effect.kernel.Ref
+
 import scala.concurrent.duration.Duration
-import java.time.ZoneOffset
+import scala.concurrent.duration.FiniteDuration
 
 class TestReporter private (
     starvingDurationAcc: Ref[IO, FiniteDuration],

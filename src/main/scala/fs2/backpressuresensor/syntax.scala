@@ -1,13 +1,12 @@
 package fs2.backpressuresensor
 
-import cats.effect.kernel.Clock
-import cats.effect.kernel.Resource
-import cats.effect.kernel.MonadCancel
-import fs2.Stream
-import fs2.Pipe
-import cats.effect.kernel.Async
 import cats.Monad
-import cats.effect.kernel.Sync
+import cats.effect.kernel.Async
+import cats.effect.kernel.Clock
+import cats.effect.kernel.MonadCancel
+import cats.effect.kernel.Resource
+import fs2.Pipe
+import fs2.Stream
 
 object syntax {
   implicit class StreamBaseOps[F[_]: Clock, T](stream: Stream[F, T]) {

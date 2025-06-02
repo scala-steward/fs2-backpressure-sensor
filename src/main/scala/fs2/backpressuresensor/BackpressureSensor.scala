@@ -1,18 +1,19 @@
 package fs2.backpressuresensor
 
-import fs2.{Pipe, Pull, Stream}
+import cats.Monad
+import cats.effect.kernel.Async
 import cats.effect.kernel.Clock
-import java.time.Instant
 import cats.effect.kernel.Ref
+import cats.effect.kernel.Resource
+import cats.syntax.all._
+import fs2.Pipe
+import fs2.Pull
+import fs2.Stream
+
+import java.time.Instant
+import scala.concurrent.duration.Duration
 import scala.concurrent.duration.FiniteDuration
 import scala.jdk.DurationConverters._
-import scala.concurrent.duration.Duration
-import cats.Applicative
-import cats.syntax.all._
-import cats.Monad
-import cats.effect.kernel.GenConcurrent
-import cats.effect.kernel.Async
-import cats.effect.kernel.Resource
 
 trait Reporter[F[_]] {
   def reportStarvedFor(duration: FiniteDuration): F[Unit]
@@ -74,7 +75,7 @@ object Reporter {
               .drain
           )
         } yield r -> f
-      ){ case (_, f) => f.cancel }
+      ) { case (_, f) => f.cancel }
       .map(_._1)
 }
 
