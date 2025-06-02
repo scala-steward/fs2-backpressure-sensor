@@ -1,7 +1,7 @@
 // Scala versions
 val scala3Version = "3.3.5"
 val scala2Version = "2.13.16"
-val targetJavaVersion = "21"
+val javaVersion = "21"
 
 val fs2Version = "3.12.0"
 val catsEffectVersion = "3.6.0"
@@ -12,6 +12,8 @@ inThisBuild(
   List(
     scalaVersion := scala3Version,
     crossScalaVersions := Seq(scala3Version, scala2Version),
+    semanticdbEnabled := true,
+    semanticdbVersion := scalafixSemanticdb.revision,
     organization := "io.github.nivox",
     homepage := Some(url("https://github.com/nivox/fs2-backpressure-sensor")),
     licenses := List(License.MIT),
@@ -43,16 +45,21 @@ lazy val root = project
     ),
     
     // Set Java 21 as target
-    javacOptions ++= Seq("-source", targetJavaVersion, "-target", targetJavaVersion),
+    javacOptions ++= Seq("-source", javaVersion, "-target", javaVersion),
+
+    scalacOptions ++= Seq(
+      s"-release:${javaVersion}",
+      "-Wunused:imports"
+    ),
     
-    // Scala 2 specific settings
+    // Scala version specific settings
     scalacOptions ++= (if (scalaVersion.value.startsWith("2.")) 
       Seq(
         "-Xsource:3",
         "-Ymacro-annotations",
-        s"-target:jvm-${targetJavaVersion}"
+        s"-target:${javaVersion}"
       ) 
     else 
-      Seq(s"-Xtarget:${targetJavaVersion}")
+      Seq(s"-Xtarget:${javaVersion}")
     )
   )
