@@ -1,7 +1,7 @@
 // Scala versions
 val scala3Version = "3.3.5"
 val scala2Version = "2.13.16"
-val javaVersion = "21"
+val javaVersion = "11"
 
 val fs2Version = "3.12.0"
 val catsEffectVersion = "3.6.0"
@@ -57,9 +57,7 @@ lazy val root = project
       Seq(
         "-Xsource:3",
         "-Ymacro-annotations",
-        s"-target:${javaVersion}"
       ) 
-    else 
-      Seq(s"-Xtarget:${javaVersion}")
+    else Seq()
     )
   )
