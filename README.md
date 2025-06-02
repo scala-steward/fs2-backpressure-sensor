@@ -1,3 +1,5 @@
+[![fs2-backpressure-sensor Scala version support](https://index.scala-lang.org/nivox/fs2-backpressure-sensor/fs2-backpressure-sensor/latest.svg)](https://index.scala-lang.org/nivox/fs2-backpressure-sensor/fs2-backpressure-sensor)
+
 # FS2 Backpressure Sensor
 
 A lightweight, composable library for monitoring backpressure in [FS2](https://fs2.io) streams.
