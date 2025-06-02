@@ -8,11 +8,11 @@ import fs2.Stream
 import fs2.backpressuresensor.syntax._
 import scala.concurrent.duration._
 
-class BackpressureSensorSuite extends CatsEffectSuite:
-  test("sensor correctly measure starvation from upstream"):
+class BackpressureSensorSuite extends CatsEffectSuite {
+  test("sensor correctly measure starvation from upstream") {
     val iterations = 10
     val program =
-      for
+      for {
         r <- TestReporter()
         _ <- Stream
           .awakeEvery[IO](1.second)
@@ -20,21 +20,22 @@ class BackpressureSensorSuite extends CatsEffectSuite:
           .take(iterations)
           .compile
           .drain
-      yield r
+      } yield r
 
-    for
+    for {
       result <- TestControl.executeEmbed(program)
 
       _ <- result.getStarvedDuration
         .map(_.toMillis)
         .assertEquals(1000 * iterations)
       _ <- result.getBackpressureDuration.map(_.toMillis).assertEquals(0)
-    yield ()
+    } yield ()
+  }
 
-  test("sensor correctly measure backpressure from downstream"):
+  test("sensor correctly measure backpressure from downstream") {
     val iterations = 10
     val program =
-      for
+      for {
         r <- TestReporter()
         _ <- Stream
           .constant(())
@@ -44,9 +45,9 @@ class BackpressureSensorSuite extends CatsEffectSuite:
           .take(iterations)
           .compile
           .drain
-      yield r
+      } yield r
 
-    for
+    for {
       result <- TestControl.executeEmbed(program)
 
       _ <- result.getStarvedDuration.map(_.toMillis).assertEquals(0)
@@ -57,12 +58,13 @@ class BackpressureSensorSuite extends CatsEffectSuite:
       _ <- result.getBackpressureDuration
         .map(_.toMillis)
         .assertEquals(backpressure)
-    yield ()
+    } yield ()
+  }
 
-  test("chained sensors measure subset of total backpressure"):
+  test("chained sensors measure subset of total backpressure") {
     val iterations = 10
     val program =
-      for
+      for {
         r1 <- TestReporter()
         r2 <- TestReporter()
         _ <- Stream
@@ -75,9 +77,9 @@ class BackpressureSensorSuite extends CatsEffectSuite:
           .take(iterations)
           .compile
           .drain
-      yield r1 -> r2
+      } yield r1 -> r2
 
-    for
+    for {
       result <- TestControl.executeEmbed(program)
       (r1, r2) = result
 
@@ -94,12 +96,13 @@ class BackpressureSensorSuite extends CatsEffectSuite:
       _ <- r2.getBackpressureDuration
         .map(_.toMillis)
         .assertEquals(s2Backpressure)
-    yield ()
+    } yield ()
+  }
 
-  test("chained sensors measure subset of total starvation"):
+  test("chained sensors measure subset of total starvation") {
     val iterations = 10
     val program =
-      for
+      for {
         r1 <- TestReporter()
         r2 <- TestReporter()
         _ <- Stream
@@ -112,9 +115,9 @@ class BackpressureSensorSuite extends CatsEffectSuite:
           .take(iterations)
           .compile
           .drain
-      yield r1 -> r2
+      } yield r1 -> r2
 
-    for
+    for {
       result <- TestControl.executeEmbed(program)
       (r1, r2) = result
 
@@ -132,14 +135,15 @@ class BackpressureSensorSuite extends CatsEffectSuite:
         .map(_.toMillis)
         .assertEquals(s1Backpressure)
       _ <- r2.getBackpressureDuration.map(_.toMillis).assertEquals(0)
-    yield ()
+    } yield ()
+  }
 
   test(
     "bracketed sensors only measure backpressure contribution of contained pipe"
-  ):
+  ) {
     val iterations = 3
     val program =
-      for
+      for {
         r1 <- TestReporter()
         r2 <- TestReporter()
         _ <- Stream
@@ -156,9 +160,9 @@ class BackpressureSensorSuite extends CatsEffectSuite:
           .take(iterations)
           .compile
           .drain
-      yield r1 -> r2
+      } yield r1 -> r2
 
-    for
+    for {
       result <- TestControl.executeEmbed(program)
       (r1, r2) = result
 
@@ -179,4 +183,6 @@ class BackpressureSensorSuite extends CatsEffectSuite:
       _ <- r2.getBackpressureDuration
         .map(_.toMillis)
         .assertEquals(50 * (iterations - 2))
-    yield ()
+    } yield ()
+  }
+}
