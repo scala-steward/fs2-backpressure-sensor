@@ -1,5 +1,5 @@
 // Scala versions
-val scala3Version = "3.3.5"
+val scala3Version = "3.3.6"
 val scala2Version = "2.13.16"
 val javaVersion = "11"
 
@@ -35,7 +35,7 @@ lazy val root = project
     name := "fs2-backpressure-sensor",
     scalaVersion := scala3Version,
     crossScalaVersions := Seq(scala3Version, scala2Version),
-    
+
     // Common settings for all Scala versions
     libraryDependencies ++= Seq(
       "co.fs2" %% "fs2-core" % fs2Version,
@@ -43,21 +43,19 @@ lazy val root = project
       "org.typelevel" %% "munit-cats-effect" % munitCatsEffectVersion % Test,
       "org.typelevel" %% "cats-effect-testkit" % catsEffectVersion % Test
     ),
-    
+
     // Set Java 21 as target
     javacOptions ++= Seq("-source", javaVersion, "-target", javaVersion),
-
     scalacOptions ++= Seq(
       s"-release:${javaVersion}",
       "-Wunused:imports"
     ),
-    
+
     // Scala version specific settings
-    scalacOptions ++= (if (scalaVersion.value.startsWith("2.")) 
-      Seq(
-        "-Xsource:3",
-        "-Ymacro-annotations",
-      ) 
-    else Seq()
-    )
+    scalacOptions ++= (if (scalaVersion.value.startsWith("2."))
+                         Seq(
+                           "-Xsource:3",
+                           "-Ymacro-annotations"
+                         )
+                       else Seq())
   )
